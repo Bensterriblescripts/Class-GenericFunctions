@@ -1,23 +1,29 @@
-﻿using System;
-using System.Diagnostics;
-using GenericFunctions;
+﻿using System.Diagnostics;
+using Nanson.GenericFunctions;
 
-public static class Test {
+internal static class Test {
     public static void Main() {
-        Console.WriteLine("Hello!");
+
+        TestLog();
+        
+    }
+
+    private static void TestLog() {
         Log.Info("Test");
+        Log.Debug("Test");
+        Log.Error("Test");
     }
 }
 
-namespace GenericFunctions {
+namespace Nanson.GenericFunctions {
     
-    // Command Line Tools
+    /* Command Line Tools */ 
     public static class Cli {
         
         private const ConsoleKey answerYes = ConsoleKey.Y;
         private const ConsoleKey answerNo = ConsoleKey.N;
 
-        /* Read Input */
+        // Read Input
         public static Boolean CheckResponse_YN(String info) {
             Console.WriteLine(info);
             ConsoleKey keyInfo = Console.ReadKey(true).Key;
@@ -50,7 +56,7 @@ namespace GenericFunctions {
         }
     }
 
-    // CMD, PowerShell and Bash Processes
+    /* CMD, PowerShell and Bash Processes */
     public static class Shell {
         
         /* CMD */
@@ -105,27 +111,57 @@ namespace GenericFunctions {
         }
     }
 
+    /* Logging */
     public static class Log {
+        private static readonly String currentDir = Directory.GetCurrentDirectory();
         
+        // File Logging
         public static void Info(String message) {
-            String? file = fileHandler();
-
+            String? file = FileHandler("info");
+            if (file is not null) {
+                WriteToFile(file, message);
+            }
         }
         public static void Debug(String message) {
-            
+            String? file = FileHandler("debug");
+            if (file is not null) {
+                WriteToFile(file, message);
+            }
         }
         public static void Error(String message) {
-            
+            String? file = FileHandler("error");
+            if (file is not null) {
+                WriteToFile(file, message);
+            }
         }
-        
-        private static String? fileHandler() {
-            String currentTime = DateTime.Now.ToString("yyyyMMdd-HHmm");
-            Console.WriteLine(currentTime);
-            
-            // File.Exists
-            
-            return null;
+
+        private static void WriteToFile(String logFile, String message) {
+            try {
+                using StreamWriter sw = File.AppendText(logFile);
+                sw.WriteLine(message);
+            }
+            catch (Exception e) {
+                Console.WriteLine($"An error occurred: {e.Message}");
+            }
         }
-        
+        private static String? FileHandler(String level) {
+            String currentTime = DateTime.Now.ToString("yyyy-MM-dd");
+            String logFile = $@"{currentDir}\log\{currentTime}.{level}.log";
+
+            if (File.Exists(logFile)) {
+                return logFile;
+            }
+            try {
+                if (!Directory.Exists($@"{currentDir}\log")) {
+                    Directory.CreateDirectory($@"{currentDir}\log");
+                }
+                using FileStream fs = File.Create(logFile);
+                return logFile;
+            }
+            catch (Exception e) {
+                Console.WriteLine(e.Message);
+                return null;
+            }
+        }
     }
 }
