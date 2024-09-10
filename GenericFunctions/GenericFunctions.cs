@@ -1,65 +1,45 @@
-﻿using System.Diagnostics;
-using Nanson.GenericFunctions;
+﻿using System.Collections;
+using System.Diagnostics;
+using System.Text.RegularExpressions;
 
-<<<<<<< Updated upstream
-internal static class Test {
-    public static void Main() {
-
-        TestLog();
-        
-    }
-
-    private static void TestLog() {
-        Log.Info("Test");
-        Log.Debug("Test");
-        Log.Error("Test");
-    }
-}
-=======
 // public static class Test {
 //     public static void Main() {
 //         Console.WriteLine("Hello!");
 //         Log.Info("Test");
 //     }
 // }
->>>>>>> Stashed changes
 
-namespace Nanson.GenericFunctions {
-    
-    /* Command Line Tools */ 
+namespace GenericFunctions {
+
+    /* Command Line Tools */
     public static class Cli {
         
         private const ConsoleKey answerYes = ConsoleKey.Y;
         private const ConsoleKey answerNo = ConsoleKey.N;
 
         // Read Input
-        public static Boolean CheckResponse_YN(String info) {
-            Console.WriteLine(info);
+        public static Boolean ConfirmResponse(String info, ConsoleKey[] confirm) {
+            Console.Write(info);
             ConsoleKey keyInfo = Console.ReadKey(true).Key;
             while (true) {
-                if (keyInfo == answerYes) {
+                if (confirm[0] == keyInfo) {
                     return true;
                 }
-
-                if (keyInfo == answerNo) {
+                if (confirm[1] == keyInfo) {
                     return false;
                 }
-
-                Console.WriteLine("Please enter a valid response. (y/n)");
+                Console.WriteLine("Please enter a valid response.");
                 keyInfo = Console.ReadKey(true).Key;
             }
         }
-
-        public static Int16 CheckResponse_Numbers(ConsoleKey[] responses) {
+        public static ConsoleKey CheckResponse(String info, ConsoleKey[] responses) {
+            Console.Write(info);
             ConsoleKey keyInfo = Console.ReadKey(true).Key;
             while (true) {
-                for (Int16 i = 0; i < responses.Length; i++) {
-                    if (responses.Contains(keyInfo)) {
-                        return i;
-                    }
+                if (responses.Contains(keyInfo)) {
+                    return keyInfo;
                 }
-
-                Console.WriteLine("Please enter a valid response. (1, 2, 3, 4)");
+                Console.WriteLine("Please enter a valid response.");
                 keyInfo = Console.ReadKey(true).Key;
             }
         }
@@ -68,8 +48,13 @@ namespace Nanson.GenericFunctions {
     /* CMD, PowerShell and Bash Processes */
     public static class Shell {
         
-        /* CMD */
-        public static Boolean AutoClose(String command) {
+        // CMD
+        
+        /// <summary>
+        /// Execute a CMD command, the window will close on completion.
+        /// </summary>
+        /// <param name="command">String: CMD Command</param>
+        public static void AutoClose(String command) {
             using Process p = new();
             ProcessStartInfo psi = new() {
                 FileName = "cmd.exe",
@@ -81,16 +66,19 @@ namespace Nanson.GenericFunctions {
             p.StartInfo = psi;
             p.Start();
             p.WaitForExit();
-
-            return true;
         }
+        /// <summary>
+        /// Execute a CMD command and return the output
+        /// </summary>
+        /// <param name="command">String: CMD Command</param>
+        /// <returns>String: output | null: empty</returns>
         public static String? GetOutput(String command) {
             using Process p = new();
             ProcessStartInfo psi = new() {
                 FileName = "cmd.exe",
                 Arguments = $"/C {command}",
-                RedirectStandardOutput = false,
-                UseShellExecute = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
                 CreateNoWindow = false
             };
             p.StartInfo = psi;
@@ -103,7 +91,12 @@ namespace Nanson.GenericFunctions {
             }
             return output.Trim();
         }
-        public static Boolean KeepOpen(String command) {
+        /// <summary>
+        /// Execute a CMD command and remain open until closed manually.
+        /// <para>Synchronous code execution will be halted until the window is closed.</para>
+        /// </summary>
+        /// <param name="command">String: CMD Command</param>
+        public static void KeepOpen(String command) {
             using Process p = new();
             ProcessStartInfo psi = new() {
                 FileName = "cmd.exe",
@@ -115,62 +108,103 @@ namespace Nanson.GenericFunctions {
             p.StartInfo = psi;
             p.Start();
             p.WaitForExit();
+        }
+    }
+    
+    /* Environment Variables */
+    public static class Env {
 
-            return true;
+        /// <summary>
+        /// Checks system and user paths if it exists via regular expression
+        /// </summary>
+        /// <param name="path">String: Path to check</param>
+        /// <param name="exact"> Boolean: Defaults to false, set to true to use regular expression matching.</param>
+        /// <returns>Boolean</returns>
+        public static Boolean PathExists(String path, Boolean exact = false) {
+            IDictionary envs = Environment.GetEnvironmentVariables();
+            if (exact) {
+                foreach (DictionaryEntry entry in envs) {
+                    String? key = entry.Key.ToString();
+                    String? value = entry.Value?.ToString();
+                    if (String.IsNullOrEmpty(key) || String.IsNullOrEmpty(value)) {
+                        continue;
+                    }
+                    if (!key.Contains("PATH", StringComparison.OrdinalIgnoreCase)) {
+                        continue;
+                    }
+
+                    if (path == value) {
+                        return true;
+                    }
+                }
+            }
+            else {
+                Regex re = new($@"{path}", RegexOptions.IgnoreCase);
+                foreach (DictionaryEntry entry in envs) {
+                    String? key = entry.Key.ToString();
+                    String? value = entry.Value?.ToString();
+                    if (String.IsNullOrEmpty(key) || String.IsNullOrEmpty(value)) {
+                        continue;
+                    }
+
+                    if (!key.Contains("PATH", StringComparison.OrdinalIgnoreCase)) {
+                        continue;
+                    }
+
+                    if (re.IsMatch(value)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+        /// <summary>
+        /// Checks system and user paths for the regex match
+        /// </summary>
+        /// <param name="re">Regex: Path to check</param>
+        /// <returns>Boolean</returns>
+        public static Boolean PathExistsRegex(Regex re) {
+            IDictionary envs = Environment.GetEnvironmentVariables();
+            foreach (DictionaryEntry entry in envs) {
+                String? key = entry.Key.ToString();
+                String? value = entry.Value?.ToString();
+                if (String.IsNullOrEmpty(key) || String.IsNullOrEmpty(value)) {
+                    continue;
+                }
+                if (!key.Contains("PATH", StringComparison.OrdinalIgnoreCase)) {
+                    continue;
+                }
+
+                if (re.IsMatch(value)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
-    /* Logging */
+    /* File and Console Logging */
     public static class Log {
-        private static readonly String currentDir = Directory.GetCurrentDirectory();
         
-        // File Logging
         public static void Info(String message) {
-            String? file = FileHandler("info");
-            if (file is not null) {
-                WriteToFile(file, message);
-            }
+            String? file = FileHandler();
+
         }
         public static void Debug(String message) {
-            String? file = FileHandler("debug");
-            if (file is not null) {
-                WriteToFile(file, message);
-            }
+            
         }
         public static void Error(String message) {
-            String? file = FileHandler("error");
-            if (file is not null) {
-                WriteToFile(file, message);
-            }
+            
         }
-
-        private static void WriteToFile(String logFile, String message) {
-            try {
-                using StreamWriter sw = File.AppendText(logFile);
-                sw.WriteLine(message);
-            }
-            catch (Exception e) {
-                Console.WriteLine($"An error occurred: {e.Message}");
-            }
-        }
-        private static String? FileHandler(String level) {
-            String currentTime = DateTime.Now.ToString("yyyy-MM-dd");
-            String logFile = $@"{currentDir}\log\{currentTime}.{level}.log";
-
-            if (File.Exists(logFile)) {
-                return logFile;
-            }
-            try {
-                if (!Directory.Exists($@"{currentDir}\log")) {
-                    Directory.CreateDirectory($@"{currentDir}\log");
-                }
-                using FileStream fs = File.Create(logFile);
-                return logFile;
-            }
-            catch (Exception e) {
-                Console.WriteLine(e.Message);
-                return null;
-            }
+        
+        private static String? FileHandler() {
+            String currentTime = DateTime.Now.ToString("yyyyMMdd-HHmm");
+            Console.WriteLine(currentTime);
+            
+            // File.Exists
+            
+            return null;
         }
     }
 }
