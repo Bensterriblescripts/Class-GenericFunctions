@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Nanson.GenericFunctions;
 
+<<<<<<< Updated upstream
 internal static class Test {
     public static void Main() {
 
@@ -14,6 +15,14 @@ internal static class Test {
         Log.Error("Test");
     }
 }
+=======
+// public static class Test {
+//     public static void Main() {
+//         Console.WriteLine("Hello!");
+//         Log.Info("Test");
+//     }
+// }
+>>>>>>> Stashed changes
 
 namespace Nanson.GenericFunctions {
     
