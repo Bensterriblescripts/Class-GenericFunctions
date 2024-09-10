@@ -1,15 +1,18 @@
-﻿using System.Diagnostics;
-using System.IO;
+﻿using System;
+using System.Diagnostics;
+using GenericFunctions;
+
+public static class Test {
+    public static void Main() {
+        Console.WriteLine("Hello!");
+        Log.Info("Test");
+    }
+}
 
 namespace GenericFunctions {
-
+    
+    // Command Line Tools
     public static class Cli {
-        /* Testing */
-        public static void Main(string[] args) {
-        
-        }
-        /***********/
-        
         
         private const ConsoleKey answerYes = ConsoleKey.Y;
         private const ConsoleKey answerNo = ConsoleKey.N;
@@ -48,7 +51,7 @@ namespace GenericFunctions {
     }
 
     // CMD, PowerShell and Bash Processes
-    public class Shell {
+    public static class Shell {
         
         /* CMD */
         public static Boolean AutoClose(String command) {
@@ -102,22 +105,26 @@ namespace GenericFunctions {
         }
     }
 
-    public class Log {
+    public static class Log {
         
-        public static void Trace(String message) {
-            
+        public static void Info(String message) {
+            String? file = fileHandler();
+
         }
         public static void Debug(String message) {
+            
         }
         public static void Error(String message) {
             
         }
         
-        private static Boolean logFileExists() {
-            String currentTime = DateTime.Now.ToString("yyyyMMdd-HH:mm:ss");
+        private static String? fileHandler() {
+            String currentTime = DateTime.Now.ToString("yyyyMMdd-HHmm");
             Console.WriteLine(currentTime);
             
             // File.Exists
+            
+            return null;
         }
         
     }
