@@ -1,8 +1,16 @@
 ﻿using System.Diagnostics;
+using System.IO;
 
 namespace GenericFunctions {
 
     public static class Cli {
+        /* Testing */
+        public static void Main(string[] args) {
+        
+        }
+        /***********/
+        
+        
         private const ConsoleKey answerYes = ConsoleKey.Y;
         private const ConsoleKey answerNo = ConsoleKey.N;
 
@@ -104,8 +112,13 @@ namespace GenericFunctions {
         public static void Error(String message) {
             
         }
+        
         private static Boolean logFileExists() {
+            String currentTime = DateTime.Now.ToString("yyyyMMdd-HH:mm:ss");
+            Console.WriteLine(currentTime);
             
+            // File.Exists
         }
+        
     }
 }
