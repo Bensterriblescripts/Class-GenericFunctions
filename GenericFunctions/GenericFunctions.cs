@@ -18,14 +18,14 @@ namespace GenericFunctions {
         private const ConsoleKey answerNo = ConsoleKey.N;
 
         // Read Input
-        public static Boolean ConfirmResponse(String info, ConsoleKey[] confirm) {
+        public static Boolean ConfirmResponse(String info, ConsoleKey confirm, ConsoleKey deny) {
             Console.Write(info);
             ConsoleKey keyInfo = Console.ReadKey(true).Key;
             while (true) {
-                if (confirm[0] == keyInfo) {
+                if (confirm == keyInfo) {
                     return true;
                 }
-                if (confirm[1] == keyInfo) {
+                if (deny == keyInfo) {
                     return false;
                 }
                 Console.WriteLine("Please enter a valid response.");
@@ -86,10 +86,10 @@ namespace GenericFunctions {
             String output = p.StandardOutput.ReadToEnd();
             p.WaitForExit();
 
-            if (output.Trim() == String.Empty) {
+            if (String.IsNullOrEmpty(output)) {
                 return null;
             }
-            return output.Trim();
+            return output;
         }
         /// <summary>
         /// Execute a CMD command and remain open until closed manually.
@@ -129,6 +129,7 @@ namespace GenericFunctions {
                     if (String.IsNullOrEmpty(key) || String.IsNullOrEmpty(value)) {
                         continue;
                     }
+
                     if (!key.Contains("PATH", StringComparison.OrdinalIgnoreCase)) {
                         continue;
                     }
@@ -159,6 +160,7 @@ namespace GenericFunctions {
 
             return false;
         }
+
         /// <summary>
         /// Checks system and user paths for the regex match
         /// </summary>
@@ -172,6 +174,7 @@ namespace GenericFunctions {
                 if (String.IsNullOrEmpty(key) || String.IsNullOrEmpty(value)) {
                     continue;
                 }
+
                 if (!key.Contains("PATH", StringComparison.OrdinalIgnoreCase)) {
                     continue;
                 }
@@ -180,7 +183,52 @@ namespace GenericFunctions {
                     return true;
                 }
             }
+
             return false;
+        }
+        /// <summary>
+        /// Retrieve the full path of a String or Regex
+        /// </summary>
+        /// <param name="path">String: Path to check</param>
+        /// <param name="reg"> Boolean: Defaults to false, set to true to use regular expression matching.</param>
+        /// <returns></returns>
+        public static String? GetPath(String path, Boolean reg = false) {
+            IDictionary envs = Environment.GetEnvironmentVariables();
+            if (!reg) {
+                foreach (DictionaryEntry entry in envs) {
+                    String? key = entry.Key.ToString();
+                    String? value = entry.Value?.ToString();
+                    if (String.IsNullOrEmpty(key) || String.IsNullOrEmpty(value)) {
+                        continue;
+                    }
+                    if (!key.Contains("PATH", StringComparison.OrdinalIgnoreCase)) {
+                        continue;
+                    }
+
+                    if (path == value) {
+                        return value;
+                    }
+                }
+            }
+            else {
+                Regex re = new($@"{path}", RegexOptions.IgnoreCase);
+                foreach (DictionaryEntry entry in envs) {
+                    String? key = entry.Key.ToString();
+                    String? value = entry.Value?.ToString();
+                    if (String.IsNullOrEmpty(key) || String.IsNullOrEmpty(value)) {
+                        continue;
+                    }
+
+                    if (!key.Contains("PATH", StringComparison.OrdinalIgnoreCase)) {
+                        continue;
+                    }
+
+                    if (re.IsMatch(value)) {
+                        return value;
+                    }
+                }
+            }
+            return null;
         }
     }
 
