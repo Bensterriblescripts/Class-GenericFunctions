@@ -13,11 +13,16 @@ namespace GenericFunctions {
 
     /* Command Line Tools */
     public static class Cli {
-        
-        private const ConsoleKey answerYes = ConsoleKey.Y;
-        private const ConsoleKey answerNo = ConsoleKey.N;
 
         // Read Input
+        
+        /// <summary>
+        /// Wait for user to input the confirm or deny key
+        /// </summary>
+        /// <param name="info">String: Write this message to console before waiting for input</param>
+        /// <param name="confirm">ConsoleKey: Positive response</param>
+        /// <param name="deny">ConsoleKey: Negative response</param>
+        /// <returns></returns>
         public static Boolean ConfirmResponse(String info, ConsoleKey confirm, ConsoleKey deny) {
             Console.Write(info);
             ConsoleKey keyInfo = Console.ReadKey(true).Key;
@@ -32,6 +37,12 @@ namespace GenericFunctions {
                 keyInfo = Console.ReadKey(true).Key;
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="info">String: Write this message to console before waiting for input</param>
+        /// <param name="responses">ConsoleKey[]: Available responses for the user</param>
+        /// <returns></returns>
         public static ConsoleKey CheckResponse(String info, ConsoleKey[] responses) {
             Console.Write(info);
             ConsoleKey keyInfo = Console.ReadKey(true).Key;
@@ -157,7 +168,6 @@ namespace GenericFunctions {
                     }
                 }
             }
-
             return false;
         }
 
@@ -235,24 +245,67 @@ namespace GenericFunctions {
     /* File and Console Logging */
     public static class Log {
         
+        /// <summary>
+        /// Write into /log/yyyyMMdd.info.log
+        /// </summary>
+        /// <param name="message">String: Log message</param>
         public static void Info(String message) {
-            String? file = FileHandler();
+            String? file = FileHandler("info");
+            if (file is null) {
+                return;
+            }
+            WriteToLog(message, file);
 
         }
+        /// <summary>
+        /// Write into /log/yyyyMMdd.debug.log
+        /// </summary>
+        /// <param name="message">String: Log message</param>
         public static void Debug(String message) {
-            
+            String? file = FileHandler("debug");
+            if (file is null) {
+                return;
+            }
+            WriteToLog(message, file);
         }
+        /// <summary>
+        /// Write into /log/yyyyMMdd.error.log
+        /// </summary>
+        /// <param name="message">String: Error message</param>
         public static void Error(String message) {
-            
+            String? file = FileHandler("error");
+            if (file is null) {
+                return;
+            }
+            WriteToLog(message, file);
         }
         
-        private static String? FileHandler() {
-            String currentTime = DateTime.Now.ToString("yyyyMMdd-HHmm");
-            Console.WriteLine(currentTime);
-            
-            // File.Exists
+        private static String? FileHandler(String level) {
+            String currentTime = DateTime.Now.ToString($"yyyyMMdd");
+            String path = $"log/{currentTime}.{level}.log";
+            try {
+                if (!File.Exists(path)) {
+                    if (!Directory.Exists("log")) {
+                        Directory.CreateDirectory("log");
+                    }
+                    File.Create(path).Close();
+                    return path;
+                }
+            }
+            catch (Exception e) {
+                Console.WriteLine(e);
+            }
             
             return null;
+        }
+        private static void WriteToLog(String message, String path) {
+            try {
+                using StreamWriter sw = File.AppendText(path);
+                sw.WriteLine(message);
+            }
+            catch (Exception e) {
+                Console.WriteLine(e);
+            }
         }
     }
 }
