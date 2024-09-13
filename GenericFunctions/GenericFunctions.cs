@@ -56,7 +56,7 @@ namespace GenericFunctions {
         }
     }
 
-    /* CMD, PowerShell and Bash Processes */
+    /* CMD & Bash Processes */
     public static class Shell {
         
         // CMD
@@ -65,6 +65,7 @@ namespace GenericFunctions {
         /// Execute a CMD command, the window will close on completion.
         /// </summary>
         /// <param name="command">String: CMD Command</param>
+        /// <exception cref="NullReferenceException"></exception>
         public static void AutoClose(String command) {
             using Process p = new();
             ProcessStartInfo psi = new() {
@@ -76,6 +77,7 @@ namespace GenericFunctions {
             };
             p.StartInfo = psi;
             p.Start();
+            if (p == null) { throw new NullReferenceException(); }
             p.WaitForExit();
         }
         /// <summary>
@@ -83,6 +85,7 @@ namespace GenericFunctions {
         /// </summary>
         /// <param name="command">String: CMD Command</param>
         /// <returns>String: output | null: empty</returns>
+        /// <exception cref="NullReferenceException"></exception>
         public static String? GetOutput(String command) {
             using Process p = new();
             ProcessStartInfo psi = new() {
@@ -94,6 +97,7 @@ namespace GenericFunctions {
             };
             p.StartInfo = psi;
             p.Start();
+            if (p == null) { throw new NullReferenceException(); }
             String output = p.StandardOutput.ReadToEnd();
             p.WaitForExit();
 
@@ -107,6 +111,7 @@ namespace GenericFunctions {
         /// <para>Synchronous code execution will be halted until the window is closed.</para>
         /// </summary>
         /// <param name="command">String: CMD Command</param>
+        /// <exception cref="NullReferenceException"></exception>
         public static void KeepOpen(String command) {
             using Process p = new();
             ProcessStartInfo psi = new() {
@@ -118,7 +123,61 @@ namespace GenericFunctions {
             };
             p.StartInfo = psi;
             p.Start();
+            if (p == null) { throw new NullReferenceException(); }
             p.WaitForExit();
+        }
+    }
+    
+    /* PowerShell */
+    public static class PowerShell {
+        
+        /// <summary>
+        /// Run a powershell file
+        /// </summary>
+        /// <param name="path">String: Path to file</param>
+        /// <param name="admin">Boolean: Set to true to run as admin - defaults to false.</param>
+        /// <exception cref="NullReferenceException"></exception>
+        public static void Execute(String path, Boolean admin = false) {
+            using Process p = new Process();
+            ProcessStartInfo psi = new() {
+                FileName = "powershell.exe",
+                Arguments = $"-ExecutionPolicy Unrestricted -File \"{path}\"",
+                RedirectStandardOutput = false,
+                UseShellExecute = true,
+                CreateNoWindow = false,
+            };
+            if (admin) {
+                psi.Verb = "runas";
+            }
+            
+            p.StartInfo = psi;
+            p.Start();
+            if (p == null) { throw new NullReferenceException(); }
+            p.WaitForExit();
+        }
+        /// <summary>
+        /// Run a command using powershell
+        /// </summary>
+        /// <param name="command">String: Command</param>
+        /// <param name="admin">Boolean: Run as admin - defaults to false</param>
+        /// <exception cref="NullReferenceException"></exception>
+        public static void AutoClose(String command, Boolean admin = false) {
+            using Process p = new();
+            ProcessStartInfo psi = new() {
+                FileName = "powershell.exe",
+                Arguments = $"-ExecutionPolicy Unrestricted -File \"{command}\"",
+                RedirectStandardOutput = false,
+                UseShellExecute = true,
+                CreateNoWindow = false,
+            };
+            if (admin) {
+                psi.Verb = "runas";
+            }
+            
+            p.StartInfo = psi;
+            p.Start();
+            if (p == null) { throw new NullReferenceException(); }
+            p.WaitForExit(); 
         }
     }
     
